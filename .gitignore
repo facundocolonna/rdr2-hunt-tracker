@@ -1,0 +1,11 @@
+# mapa de 21 MB — no se usa (el tracker usa map_med_res.jpg)
+map.jpg
+
+# config local de Claude Code
+.claude/
+
+# ruido del SO / editores
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
