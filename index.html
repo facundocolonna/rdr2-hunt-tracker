@@ -261,7 +261,7 @@ const SRC={es:{Trapper:"Trapper",Pearson:"Pearson",Campamento:"Campamento",Fence
            en:{Trapper:"Trapper",Pearson:"Pearson",Campamento:"Camp",Fence:"Fence","Retos / Legendario":"Challenges / Legendary"}};
 const CATS={es:{"Big Game":"Caza mayor","Small Game":"Caza menor","Bird":"Ave","Snake":"Serpiente","Fish":"Pez","Legendary":"Legendario"},
             en:{"Big Game":"Big Game","Small Game":"Small Game","Bird":"Bird","Snake":"Snake","Fish":"Fish","Legendary":"Legendary"}};
-let lang = localStorage.getItem("rdr2-lang") || ((navigator.language||"en").toLowerCase().indexOf("es")===0?"es":"en");
+let lang = localStorage.getItem("rdr2-lang") || "en"; // default: inglés (se puede cambiar con el toggle y queda guardado)
 function t(k){ return (I18N[lang]&&I18N[lang][k]) || I18N.es[k] || k; }
 function srcLabel(s){ return (SRC[lang]&&SRC[lang][s]) || s; }
 function catLabel(c){ return (CATS[lang]&&CATS[lang][c]) || c; }
