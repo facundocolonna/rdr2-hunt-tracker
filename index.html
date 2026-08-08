@@ -25,6 +25,9 @@
   header.app h1{font-size:21px;margin:0;letter-spacing:.5px;color:var(--gold);text-shadow:0 2px 0 #000}
   header.app .sub{color:var(--muted);font-size:12px}
   .btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:7px 13px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px}
+  .langseg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .langseg button{background:transparent;border:0;color:var(--muted);padding:7px 12px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:bold;letter-spacing:.5px}
+  .langseg button.active{background:var(--gold);color:#241a08}
   .btn:hover{border-color:var(--gold)}
 
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0}
@@ -147,10 +150,11 @@
 <div class="wrap">
   <header class="app">
     <div style="flex:1">
-      <h1>🦬 RDR2 · Seguimiento de Caza y Crafteo</h1>
-      <div class="sub">Sumá lo que cazás y marcá lo que comprás. Todo se guarda en este navegador.</div>
+      <h1 id="appTitle">🦬 RDR2 · Seguimiento de Caza y Crafteo</h1>
+      <div class="sub" id="appSub">Sumá lo que cazás y marcá lo que comprás. Todo se guarda en este navegador.</div>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="langseg"><button id="langEs" type="button">ES</button><button id="langEn" type="button">EN</button></div>
       <button class="btn" id="btnExport">Exportar</button>
       <button class="btn" id="btnImport">Importar</button>
       <button class="btn" id="btnReset">Reset</button>
@@ -163,11 +167,11 @@
     <!-- ANIMALES -->
     <div class="panel">
       <div class="phead">
-        <div class="row1"><h2>🐾 Animales</h2><span class="cnt" id="animalsCnt"></span></div>
+        <div class="row1"><h2 id="animalsTitle">🐾 Animales</h2><span class="cnt" id="animalsCnt"></span></div>
         <div class="ctrls">
           <input type="search" id="aSearch" placeholder="Buscar animal…">
           <select id="aCat"></select>
-          <label class="chk"><input type="checkbox" id="aMissing"> Solo pendientes</label>
+          <label class="chk"><input type="checkbox" id="aMissing"> <span id="lblAMissing">Solo pendientes</span></label>
         </div>
       </div>
       <div class="pbody" id="animalsBody"></div>
@@ -176,12 +180,12 @@
     <!-- ITEMS -->
     <div class="panel">
       <div class="phead">
-        <div class="row1"><h2>🧵 Ítems para craftear / comprar</h2><span class="cnt" id="itemsCnt"></span></div>
+        <div class="row1"><h2 id="itemsTitle">🧵 Ítems para craftear / comprar</h2><span class="cnt" id="itemsCnt"></span></div>
         <div class="ctrls">
           <input type="search" id="iSearch" placeholder="Buscar ítem…">
           <select id="iSrc"></select>
-          <label class="chk"><input type="checkbox" id="iReady"> Solo craftéables ya</label>
-          <label class="chk"><input type="checkbox" id="iMissing"> Ocultar comprados</label>
+          <label class="chk"><input type="checkbox" id="iReady"> <span id="lblIReady">Solo craftéables ya</span></label>
+          <label class="chk"><input type="checkbox" id="iMissing"> <span id="lblIMissing">Ocultar comprados</span></label>
         </div>
       </div>
       <div class="pbody" id="itemsBody"></div>
@@ -207,7 +211,7 @@
           <button type="button" id="mzFit" title="Ver todo" style="font-size:12px">⤢</button>
         </div>
       </div>
-      <div class="mapcredit">Mapa base por <a href="https://www.reddit.com/r/reddeadredemption2/comments/zwwcz6/" target="_blank" rel="noopener" style="color:inherit">u/Te_Quiero_Puta (r/reddeadredemption2)</a> · RDR2 © Rockstar Games · guía fan sin fines de lucro</div>
+      <div class="mapcredit" id="mapCredit">Mapa base por <a href="https://www.reddit.com/r/reddeadredemption2/comments/zwwcz6/" target="_blank" rel="noopener" style="color:inherit">u/Te_Quiero_Puta (r/reddeadredemption2)</a> · RDR2 © Rockstar Games · guía fan sin fines de lucro</div>
     </div>
     <div class="mm-info" id="mmInfo"></div>
   </div>
@@ -225,6 +229,42 @@ const DATA = {"animals": [{"id": "american-bison", "name": "American Bison", "ca
 const STORAGE_KEY="rdr2-tracker-v1";
 let state=loadState();
 const ui={aQ:"",aCat:"all",aMissing:false,iQ:"",iSrc:"all",iReady:false,iMissing:false};
+
+/* ---------- i18n (interfaz ES/EN; nombres de animales/ítems quedan en inglés) ---------- */
+const I18N={
+  es:{title:"RDR2 · Seguimiento de Caza y Crafteo",sub:"Sumá lo que cazás y marcá lo que comprás. Todo se guarda en este navegador.",export:"Exportar",import:"Importar",reset:"Reset",
+    animals:"🐾 Animales",items:"🧵 Ítems para craftear / comprar",searchAnimal:"Buscar animal…",searchItem:"Buscar ítem…",
+    onlyMissingA:"Solo pendientes",onlyReady:"Solo craftéables ya",hideBought:"Ocultar comprados",allCategories:"Todas las categorías",allSources:"Todas las fuentes",
+    hunted:"cazados",bought:"comprados",nothing:"Nada con estos filtros 🎯",legendaryTag:"Legendario",noHide:"sin piel",
+    subtract:"Restar",add:"Sumar",markHunted:"Marcar cazado",huntedBadge:"✔ Cazado",markHuntedTitle:"Se caza una sola vez; habilita todos sus ítems",whereHunt:"Dónde cazarlo",
+    ready:"Listo",missingPieces:"Faltan piezas",boughtBadge:"✔ Comprado",buy:"Comprar",buyTitle:"Comprar y descontar materiales",missingMats:"Te faltan materiales",
+    have:"tenés",legHunted:"✓ cazado",legHunt:"cazá el legendario",seeAnimal:"Ver este animal en la lista →",
+    close:"Cerrar ✕",zoomIn:"Acercar",zoomOut:"Alejar",fit:"Ver todo",whereHuntTitle:"— dónde cazarlo",
+    regions:"Regiones",locations:"Ubicaciones",time:"Horario",weapon:"Arma / método",seeExact:"Ver zona exacta en rdr2map.com ↗",
+    compendium:"Compendio",legendaries:"Legendarios",itemsBought:"Ítems comprados",
+    confirmReset:"¿Borrar todo el progreso?",invalidFile:"Archivo inválido",
+    credit:'Mapa base por <a href="https://www.reddit.com/r/reddeadredemption2/comments/zwwcz6/" target="_blank" rel="noopener" style="color:inherit">u/Te_Quiero_Puta (r/reddeadredemption2)</a> · RDR2 © Rockstar Games · guía fan sin fines de lucro'},
+  en:{title:"RDR2 · Hunting & Crafting Tracker",sub:"Add what you hunt and check off what you buy. Everything is saved in this browser.",export:"Export",import:"Import",reset:"Reset",
+    animals:"🐾 Animals",items:"🧵 Items to craft / buy",searchAnimal:"Search animal…",searchItem:"Search item…",
+    onlyMissingA:"Only missing",onlyReady:"Only craftable now",hideBought:"Hide bought",allCategories:"All categories",allSources:"All sources",
+    hunted:"hunted",bought:"bought",nothing:"Nothing with these filters 🎯",legendaryTag:"Legendary",noHide:"no hide",
+    subtract:"Subtract",add:"Add",markHunted:"Mark hunted",huntedBadge:"✔ Hunted",markHuntedTitle:"Caught once; unlocks all its items",whereHunt:"Where to hunt",
+    ready:"Ready",missingPieces:"Missing pieces",boughtBadge:"✔ Bought",buy:"Buy",buyTitle:"Buy and deduct materials",missingMats:"Missing materials",
+    have:"have",legHunted:"✓ hunted",legHunt:"hunt the legendary",seeAnimal:"See this animal in the list →",
+    close:"Close ✕",zoomIn:"Zoom in",zoomOut:"Zoom out",fit:"Fit",whereHuntTitle:"— where to hunt",
+    regions:"Regions",locations:"Locations",time:"Time",weapon:"Weapon / method",seeExact:"See exact zone on rdr2map.com ↗",
+    compendium:"Compendium",legendaries:"Legendaries",itemsBought:"Items bought",
+    confirmReset:"Delete all progress?",invalidFile:"Invalid file",
+    credit:'Base map by <a href="https://www.reddit.com/r/reddeadredemption2/comments/zwwcz6/" target="_blank" rel="noopener" style="color:inherit">u/Te_Quiero_Puta (r/reddeadredemption2)</a> · RDR2 © Rockstar Games · non-profit fan guide'}
+};
+const SRC={es:{Trapper:"Trapper",Pearson:"Pearson",Campamento:"Campamento",Fence:"Fence","Retos / Legendario":"Retos / Legendario"},
+           en:{Trapper:"Trapper",Pearson:"Pearson",Campamento:"Camp",Fence:"Fence","Retos / Legendario":"Challenges / Legendary"}};
+const CATS={es:{"Big Game":"Caza mayor","Small Game":"Caza menor","Bird":"Ave","Snake":"Serpiente","Fish":"Pez","Legendary":"Legendario"},
+            en:{"Big Game":"Big Game","Small Game":"Small Game","Bird":"Bird","Snake":"Snake","Fish":"Fish","Legendary":"Legendary"}};
+let lang = localStorage.getItem("rdr2-lang") || ((navigator.language||"en").toLowerCase().indexOf("es")===0?"es":"en");
+function t(k){ return (I18N[lang]&&I18N[lang][k]) || I18N.es[k] || k; }
+function srcLabel(s){ return (SRC[lang]&&SRC[lang][s]) || s; }
+function catLabel(c){ return (CATS[lang]&&CATS[lang][c]) || c; }
 
 function loadState(){
   let s; try{ s=JSON.parse(localStorage.getItem(STORAGE_KEY)); }catch(e){}
@@ -263,13 +303,13 @@ function renderStats(){
   const leg=DATA.legendaryAnimals.length, legDone=DATA.legendaryAnimals.filter(a=>animalDone(a.id)).length;
   const items=allItems(), itemsDone=items.filter(i=>itemBought(i.id)).length;
   const blocks=[
-    {lbl:"Compendio",n:stdDone,d:std},
-    {lbl:"Legendarios",n:legDone,d:leg},
-    {lbl:"Ítems comprados",n:itemsDone,d:items.length},
-    {lbl:"Trapper",n:(DATA.trapper||[]).filter(i=>itemBought(i.id)).length,d:(DATA.trapper||[]).length},
-    {lbl:"Pearson",n:(DATA.pearson||[]).filter(i=>itemBought(i.id)).length,d:(DATA.pearson||[]).length},
-    {lbl:"Campamento",n:(DATA.camp||[]).filter(i=>itemBought(i.id)).length,d:(DATA.camp||[]).length},
-    {lbl:"Fence",n:(DATA.fence||[]).filter(i=>itemBought(i.id)).length,d:(DATA.fence||[]).length},
+    {lbl:t("compendium"),n:stdDone,d:std},
+    {lbl:t("legendaries"),n:legDone,d:leg},
+    {lbl:t("itemsBought"),n:itemsDone,d:items.length},
+    {lbl:srcLabel("Trapper"),n:(DATA.trapper||[]).filter(i=>itemBought(i.id)).length,d:(DATA.trapper||[]).length},
+    {lbl:srcLabel("Pearson"),n:(DATA.pearson||[]).filter(i=>itemBought(i.id)).length,d:(DATA.pearson||[]).length},
+    {lbl:srcLabel("Campamento"),n:(DATA.camp||[]).filter(i=>itemBought(i.id)).length,d:(DATA.camp||[]).length},
+    {lbl:srcLabel("Fence"),n:(DATA.fence||[]).filter(i=>itemBought(i.id)).length,d:(DATA.fence||[]).length},
   ];
   document.getElementById("stats").innerHTML=blocks.map(b=>{
     const pct=b.d?Math.round(b.n/b.d*100):0;
@@ -280,7 +320,8 @@ function renderStats(){
 /* ---------- animals panel ---------- */
 function initAnimalFilter(){
   const cats=["all",...new Set(allAnimals().map(a=>a.category))];
-  document.getElementById("aCat").innerHTML=cats.map(c=>`<option value="${c}">${c==="all"?"Todas las categorías":c}</option>`).join("");
+  document.getElementById("aCat").innerHTML=cats.map(c=>`<option value="${c}">${c==="all"?t("allCategories"):catLabel(c)}</option>`).join("");
+  document.getElementById("aCat").value=ui.aCat;
 }
 function renderAnimals(){
   const list=allAnimals().filter(a=>{
@@ -290,14 +331,14 @@ function renderAnimals(){
     return true;
   });
   const total=allAnimals().length, done=allAnimals().filter(a=>animalDone(a.id)).length;
-  document.getElementById("animalsCnt").textContent=`${done}/${total} cazados`;
+  document.getElementById("animalsCnt").textContent=`${done}/${total} ${t("hunted")}`;
   const el=document.getElementById("animalsBody");
-  if(!list.length){ el.innerHTML=`<div class="empty">Nada con estos filtros 🎯</div>`; return; }
+  if(!list.length){ el.innerHTML=`<div class="empty">${t("nothing")}</div>`; return; }
   const cats=[...new Set(list.map(a=>a.category))];
   el.innerHTML=cats.map(c=>{
     const items=list.filter(a=>a.category===c);
     const d=items.filter(a=>animalDone(a.id)).length;
-    return `<section class="group"><h3>${c} <span class="c">${d}/${items.length}</span></h3><div class="agrid">${items.map(animalCard).join("")}</div></section>`;
+    return `<section class="group"><h3>${catLabel(c)} <span class="c">${d}/${items.length}</span></h3><div class="agrid">${items.map(animalCard).join("")}</div></section>`;
   }).join("");
 }
 function animalCard(a){
@@ -305,15 +346,15 @@ function animalCard(a){
   return `<div class="card ${done?'done':''}" data-id="${a.id}">
     <div class="body">
       <div class="name">${done?'✔ ':''}${a.legendary?'⭐ ':''}${a.name}</div>
-      <div class="meta">${a.legendary?'<span class="tag leg">Legendario</span> ':''}${a.pelt?`🐾 ${a.pelt}`:'sin piel'}${parts?`<br>🦴 ${parts}`:''}</div>
+      <div class="meta">${a.legendary?`<span class="tag leg">${t("legendaryTag")}</span> `:''}${a.pelt?`🐾 ${a.pelt}`:t("noHide")}${parts?`<br>🦴 ${parts}`:''}</div>
     </div>
-    ${a.habitat?`<button class="mapbtn" data-map="${a.id}" title="Dónde cazarlo">📍</button>`:''}
+    ${a.habitat?`<button class="mapbtn" data-map="${a.id}" title="${t("whereHunt")}">📍</button>`:''}
     ${a.legendary
-      ? (done?`<span class="badge done">✔ Cazado</span>`:`<button class="btn catchbtn" data-catch="${a.id}" title="Se caza una sola vez; habilita todos sus ítems">Marcar cazado</button>`)
+      ? (done?`<span class="badge done">${t("huntedBadge")}</span>`:`<button class="btn catchbtn" data-catch="${a.id}" title="${t("markHuntedTitle")}">${t("markHunted")}</button>`)
       : `<div class="counter">
-      <button data-dec="${a.id}" title="Restar">−</button>
+      <button data-dec="${a.id}" title="${t("subtract")}">−</button>
       <span class="q">${n}</span>
-      <button data-inc="${a.id}" title="Sumar">+</button>
+      <button data-inc="${a.id}" title="${t("add")}">+</button>
     </div>`}
   </div>`;
 }
@@ -321,7 +362,8 @@ function animalCard(a){
 /* ---------- items panel ---------- */
 function initItemFilter(){
   const srcs=["all",...new Set(allItems().map(i=>i.source))];
-  document.getElementById("iSrc").innerHTML=srcs.map(s=>`<option value="${s}">${s==="all"?"Todas las fuentes":s}</option>`).join("");
+  document.getElementById("iSrc").innerHTML=srcs.map(s=>`<option value="${s}">${s==="all"?t("allSources"):srcLabel(s)}</option>`).join("");
+  document.getElementById("iSrc").value=ui.iSrc;
 }
 function renderItems(){
   const list=allItems().filter(i=>{
@@ -332,28 +374,28 @@ function renderItems(){
     return true;
   });
   const total=allItems().length, done=allItems().filter(i=>itemBought(i.id)).length;
-  document.getElementById("itemsCnt").textContent=`${done}/${total} comprados`;
+  document.getElementById("itemsCnt").textContent=`${done}/${total} ${t("bought")}`;
   const el=document.getElementById("itemsBody");
-  if(!list.length){ el.innerHTML=`<div class="empty">Nada con estos filtros 🎯</div>`; return; }
+  if(!list.length){ el.innerHTML=`<div class="empty">${t("nothing")}</div>`; return; }
   const srcs=[...new Set(list.map(i=>i.source))];
   el.innerHTML=srcs.map(s=>{
     const items=list.filter(i=>i.source===s);
     const d=items.filter(i=>itemBought(i.id)).length;
-    return `<section class="group"><h3>${s} <span class="c">${d}/${items.length}</span></h3>${items.map(itemRow).join("")}</section>`;
+    return `<section class="group"><h3>${srcLabel(s)} <span class="c">${d}/${items.length}</span></h3>${items.map(itemRow).join("")}</section>`;
   }).join("");
 }
 function itemRow(i){
   const bought=itemBought(i.id), gated=itemGated(i), buyable=itemReady(i);
-  const badge=(bought||!gated)?'':buyable?`<span class="badge ready">Listo</span>`:`<span class="badge wait">Faltan piezas</span>`;
+  const badge=(bought||!gated)?'':buyable?`<span class="badge ready">${t("ready")}</span>`:`<span class="badge wait">${t("missingPieces")}</span>`;
   const ings=(i.ingredients||[]).map(g=>{
     let cls='neutral', hint='', attr='';
-    if(g.animalId){ const leg=isLeg(g.animalId); const have=leg?obtained(g.animalId):count(g.animalId)>=g.qty; cls=have?'have clk':'clk'; if(!have&&!leg) hint=` <span class="qty">tenés ${count(g.animalId)}</span>`; else if(leg) hint=` <span class="qty">${have?'✓ cazado':'cazá el legendario'}</span>`; attr=` data-animal="${g.animalId}"`; }
+    if(g.animalId){ const leg=isLeg(g.animalId); const have=leg?obtained(g.animalId):count(g.animalId)>=g.qty; cls=have?'have clk':'clk'; if(!have&&!leg) hint=` <span class="qty">${t("have")} ${count(g.animalId)}</span>`; else if(leg) hint=` <span class="qty">${have?t("legHunted"):t("legHunt")}</span>`; attr=` data-animal="${g.animalId}"`; }
     else if(g.category){ cls=(anyObtainedInCat(g.category)?'have ':'')+'clk'; attr=` data-cat="${g.category}"`; }
-    return `<span class="chip ${cls}"${attr}${attr?' title="Ver este animal en la lista →"':''}><span class="dot"></span>${g.name}${g.qty>1?` <span class="qty">×${g.qty}</span>`:''}${hint}</span>`;
+    return `<span class="chip ${cls}"${attr}${attr?` title="${t("seeAnimal")}"`:''}><span class="dot"></span>${g.name}${g.qty>1?` <span class="qty">×${g.qty}</span>`:''}${hint}</span>`;
   }).join("");
   const control=bought
-    ? `<span class="badge done">✔ Comprado</span>`
-    : `<button class="btn buybtn" data-buy="${i.id}" ${buyable?'':'disabled'} title="${buyable?'Comprar y descontar materiales':'Te faltan materiales'}">Comprar</button>`;
+    ? `<span class="badge done">${t("boughtBadge")}</span>`
+    : `<button class="btn buybtn" data-buy="${i.id}" ${buyable?'':'disabled'} title="${buyable?t("buyTitle"):t("missingMats")}">${t("buy")}</button>`;
   return `<div class="item ${bought?'bought':''} ${gated&&buyable&&!bought?'ready':''}">
     <div class="main">
       <div class="title">${i.name}</div>
@@ -445,15 +487,15 @@ function zoomAt(mx,my,f){
 function openMap(id){
   const a=animalById(id); if(!a) return;
   const h=a.habitat||{regions:[],locations:[]};
-  document.getElementById("mmTitle").textContent="📍 "+a.name+" — dónde cazarlo";
+  document.getElementById("mmTitle").textContent="📍 "+a.name+" "+t("whereHuntTitle");
   const rlist=(h.regions||[]).map(function(r){return REGION_NAMES[r]||r;}).join(" · ")||"—";
   const locs=(h.locations||[]).map(function(l){return "<li>"+l+"</li>";}).join("")||"<li>—</li>";
-  const extra=a.mapCat?'<a class="mm-open" href="https://rdr2map.com/?catIds='+a.mapCat+'" target="_blank" rel="noopener">Ver zona exacta en rdr2map.com ↗</a>':'';
+  const extra=a.mapCat?'<a class="mm-open" href="https://rdr2map.com/?catIds='+a.mapCat+'" target="_blank" rel="noopener">'+t("seeExact")+'</a>':'';
   document.getElementById("mmInfo").innerHTML=
-    '<div class="mm-row"><span class="mm-lbl">Regiones</span><div>'+rlist+'</div></div>'+
-    '<div class="mm-row"><span class="mm-lbl">Ubicaciones</span><ul>'+locs+'</ul></div>'+
-    (h.time?'<div class="mm-row"><span class="mm-lbl">Horario</span><div>'+h.time+'</div></div>':'')+
-    (h.weapon?'<div class="mm-row"><span class="mm-lbl">Arma / método</span><div>'+h.weapon+'</div></div>':'')+
+    '<div class="mm-row"><span class="mm-lbl">'+t("regions")+'</span><div>'+rlist+'</div></div>'+
+    '<div class="mm-row"><span class="mm-lbl">'+t("locations")+'</span><ul>'+locs+'</ul></div>'+
+    (h.time?'<div class="mm-row"><span class="mm-lbl">'+t("time")+'</span><div>'+h.time+'</div></div>':'')+
+    (h.weapon?'<div class="mm-row"><span class="mm-lbl">'+t("weapon")+'</span><div>'+h.weapon+'</div></div>':'')+
     extra;
   currentPins=animalPins(a);
   const layer=document.getElementById("pinLayer"); layer.innerHTML="";
@@ -523,13 +565,42 @@ document.getElementById("btnExport").addEventListener("click",()=>{
 document.getElementById("btnImport").addEventListener("click",()=>document.getElementById("fileInput").click());
 document.getElementById("fileInput").addEventListener("change",e=>{
   const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader(); r.onload=()=>{ try{ localStorage.setItem(STORAGE_KEY,r.result); state=loadState(); renderAll(); }catch(err){ alert("Archivo inválido"); } };
+  const r=new FileReader(); r.onload=()=>{ try{ localStorage.setItem(STORAGE_KEY,r.result); state=loadState(); renderAll(); }catch(err){ alert(t("invalidFile")); } };
   r.readAsText(f);
 });
-document.getElementById("btnReset").addEventListener("click",()=>{ if(confirm("¿Borrar todo el progreso?")){ state={animals:{},items:{},obtained:{}}; save(); renderAll(); } });
+document.getElementById("btnReset").addEventListener("click",()=>{ if(confirm(t("confirmReset"))){ state={animals:{},items:{},obtained:{}}; save(); renderAll(); } });
+
+/* ---------- i18n: aplicar a la interfaz estática + toggle ---------- */
+function applyI18n(){
+  document.documentElement.lang=lang;
+  document.getElementById("appTitle").textContent="🦬 "+t("title");
+  document.title=t("title");
+  document.getElementById("appSub").textContent=t("sub");
+  document.getElementById("btnExport").textContent=t("export");
+  document.getElementById("btnImport").textContent=t("import");
+  document.getElementById("btnReset").textContent=t("reset");
+  document.getElementById("animalsTitle").textContent=t("animals");
+  document.getElementById("itemsTitle").textContent=t("items");
+  document.getElementById("aSearch").placeholder=t("searchAnimal");
+  document.getElementById("iSearch").placeholder=t("searchItem");
+  document.getElementById("lblAMissing").textContent=t("onlyMissingA");
+  document.getElementById("lblIReady").textContent=t("onlyReady");
+  document.getElementById("lblIMissing").textContent=t("hideBought");
+  document.getElementById("mmClose").textContent=t("close");
+  document.getElementById("mzIn").title=t("zoomIn");
+  document.getElementById("mzOut").title=t("zoomOut");
+  document.getElementById("mzFit").title=t("fit");
+  document.getElementById("mapCredit").innerHTML=t("credit");
+  document.getElementById("langEs").classList.toggle("active",lang==="es");
+  document.getElementById("langEn").classList.toggle("active",lang==="en");
+  initAnimalFilter(); initItemFilter(); renderAll();
+}
+function setLang(l){ lang=l; localStorage.setItem("rdr2-lang",l); applyI18n(); }
+document.getElementById("langEs").addEventListener("click",()=>setLang("es"));
+document.getElementById("langEn").addEventListener("click",()=>setLang("en"));
 
 /* ---------- init ---------- */
-initAnimalFilter(); initItemFilter(); renderAll();
+applyI18n();
 if(location.hash.indexOf("#map=")===0){ var _mid=decodeURIComponent(location.hash.slice(5)); if(animalById(_mid)) openMap(_mid); }
 </script>
 </body>

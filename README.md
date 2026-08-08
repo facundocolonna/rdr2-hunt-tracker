@@ -2,6 +2,8 @@
 
 Rastreador de completado para **Red Dead Redemption 2** (modo historia), pensado para tener abierto en una segunda pantalla mientras jugás. Todo funciona **offline**, sin instalar nada y sin cuentas: es un único archivo HTML que guarda tu progreso en el navegador.
 
+**Interfaz en español e inglés** (toggle ES/EN arriba a la derecha). Los nombres de animales e ítems quedan en inglés (como en el juego).
+
 ## Qué hace
 
 Dos paneles con scroll independiente:
