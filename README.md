@@ -13,7 +13,7 @@ Incluye dashboard de progreso, búsqueda, filtros, y **exportar/importar** tu pr
 
 ## Cómo se usa
 
-Abrí `rdr2-tracker.html` con doble-click. Listo. El progreso se guarda solo en ese navegador (usá **Exportar** para backup o para pasarlo a otra PC).
+Abrí `index.html` con doble-click. Listo. El progreso se guarda solo en ese navegador (usá **Exportar** para backup o para pasarlo a otra PC).
 
 ## Datos y fuentes
 
@@ -35,7 +35,7 @@ La MIT **no** cubre el contenido de terceros: el **mapa base** es de **u/Te_Quie
 
 ## Archivos
 
-- `rdr2-tracker.html` — la app (todo incluido).
+- `index.html` — la app (todo incluido).
 - `map_med_res.jpg` — mapa base (4500×3502).
 - `README.md` — este archivo.
 - `LICENSE` — licencia MIT + nota de terceros.
